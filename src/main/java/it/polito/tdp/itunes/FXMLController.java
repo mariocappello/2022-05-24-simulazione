@@ -5,8 +5,14 @@
 package it.polito.tdp.itunes;
 
 import java.net.URL;
+import java.util.Collections;
+import java.util.*;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.itunes.db.Adiacenza;
+import it.polito.tdp.itunes.model.Genre;
 import it.polito.tdp.itunes.model.Model;
+import it.polito.tdp.itunes.model.Track;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -34,10 +40,10 @@ public class FXMLController {
     private Button btnMassimo; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbCanzone"
-    private ComboBox<?> cmbCanzone; // Value injected by FXMLLoader
+    private ComboBox<Track> cmbCanzone; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbGenere"
-    private ComboBox<?> cmbGenere; // Value injected by FXMLLoader
+    private ComboBox<Genre> cmbGenere; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtMemoria"
     private TextField txtMemoria; // Value injected by FXMLLoader
@@ -47,16 +53,82 @@ public class FXMLController {
 
     @FXML
     void btnCreaLista(ActionEvent event) {
-
+    	
+    	Track c = cmbCanzone.getValue();
+    	if(c==null) {
+    		txtResult.appendText("selezionare un valore");
+    		return;
+    	}
+    	
+    	int memoria;
+    	try{
+    		memoria = Integer.parseInt(txtMemoria.getText().toString());
+    	}
+    	catch(NumberFormatException e) {
+    		txtResult.appendText("inserire un vlore numerico valido");
+    		return;
+    	}
+    	
+    	txtResult.appendText("Lista canzoni migliori: "+"\n");
+    	for(Track t : model.creaLista(c, memoria)) {
+    		txtResult.appendText(t.toString()+"\n");
+    	}
+    	
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	txtResult.clear();
+    	
+    	if(cmbGenere.getValue()==null) {
+    		txtResult.setText("inserire un valore!");
+    		return;
+    	}
+    	
+    	Genre genere = cmbGenere.getValue();
+    	model.creaGrafo(genere);
+    	
+    	if(model.grafoCreato()==true) {
+    		txtResult.appendText("grafo creato!"+"\n");
+    		txtResult.appendText("Archi: " + model.getNumeroArchi()+"\n");
+    		txtResult.appendText("Vertici: "+ model.getNumeroVertici()+"\n");
+    		cmbCanzone.getItems().addAll(model.getVertici());
+    		
+    	}
+    	else {
+    		txtResult.setText("Devi creare il grafo!");
+    	}
 
     }
+    
 
     @FXML
     void doDeltaMassimo(ActionEvent event) {
+    	
+    	if(!(model.grafoCreato())) {
+    		txtResult.appendText("Devi prima creare il grafo!"); 
+    		return;
+    	}
+    	
+    	int max=0;
+    	List<Adiacenza> listaPerOrdinamentoFinale = new ArrayList<Adiacenza>();
+    	
+    	List<Adiacenza> listaPerOrdinamento = model.getArchi();
+    	for(Adiacenza a : listaPerOrdinamento) {
+    		if(a.getPeso()>max) {
+    			listaPerOrdinamentoFinale.clear();
+    			max=a.getPeso();
+    			listaPerOrdinamentoFinale.add(a);
+    		}
+    		if(a.getPeso()==max) {
+    			
+    			listaPerOrdinamentoFinale.add(a);
+    		}
+    		
+    	}
+    	for(Adiacenza adiacenza : listaPerOrdinamentoFinale) {
+    		txtResult.setText(adiacenza.getT1()+" "+adiacenza.getT2()+" "+adiacenza.getPeso()+"\n");
+    	}
     	
     	
     }
@@ -75,6 +147,7 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	cmbGenere.getItems().addAll(model.getAllGenres());
     }
 
 }

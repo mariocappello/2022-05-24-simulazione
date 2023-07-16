@@ -18,6 +18,11 @@ public class Track {
 		this.unitPrice = unitPrice;
 	}
 	
+	public Track(Track track) {
+		// TODO Auto-generated constructor stub
+		this.trackId=track.trackId;
+	}
+
 	public Integer getTrackId() {
 		return trackId;
 	}
